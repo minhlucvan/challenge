@@ -20,6 +20,9 @@ import {
 } from "@taiga-ui/kit";
 import { TuiDataListModule, TuiLabelModule } from "@taiga-ui/core";
 import { TuiTextfieldControllerModule } from "@taiga-ui/core";
+import { JobFormComponent } from './components/job-form/job-form.component';
+import { EffectsModule } from "@ngrx/effects";
+import { JobsEffects } from "./state/jobs.effects";
 
 @NgModule({
   declarations: [
@@ -27,11 +30,13 @@ import { TuiTextfieldControllerModule } from "@taiga-ui/core";
     JobComponent,
     JobDescriptionComponent,
     JobCreateComponent,
+    JobFormComponent,
   ],
   imports: [
     CommonModule,
     FontAwesomeModule,
     JobsRoutingModule,
+    EffectsModule.forFeature([JobsEffects]),
     ReactiveFormsModule,
     TuiFilterModule,
     TuiTextAreaModule,

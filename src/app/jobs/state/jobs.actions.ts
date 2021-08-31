@@ -2,7 +2,7 @@ import { createAction, props } from "@ngrx/store";
 import { Job } from "../../shared/models/jobs";
 
 // Fetch all jobs
-export const getJobs = createAction("[Jobs API] Get Jobs");
+export const getJobsMeta = createAction("[Jobs API] Get Jobs meta");
 export const getJobsSuccess = createAction(
   "[Jobs API] Get Jobs Success",
   props<{ jobs: Job[] }>()
@@ -87,10 +87,10 @@ export const searchSuccess = createAction(
 );
 
 export const filterJob = createAction(
-  "[Jobs API] Search post",
-  props<{ type?: number; title?: string; company?: string }>()
+  "[Jobs API] filter jobs",
+  props<{ type?: number; title?: string; company?: string, search?: string }>()
 );
 export const filterSuccess = createAction(
-  "[Jobs API] Search post",
-  props<{ job: Job[] }>()
+  "[Jobs API] filter job success",
+  props<{ jobs: Job[] }>()
 );

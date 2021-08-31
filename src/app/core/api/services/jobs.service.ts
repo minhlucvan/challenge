@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
 import { from, Observable, of } from "rxjs";
 
-import { Job } from "./shared/models/jobs";
-import jobs from "./jobs/jobs.json";
+import { Job, JobsFilter } from "../../../shared/models/jobs";
+import jobs from "../../../jobs/jobs.json";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { map } from "rxjs/operators";
 import firebase from "firebase/compat";
@@ -11,7 +11,7 @@ import firebase from "firebase/compat";
   providedIn: "root",
 })
 export class JobsService {
-  constructor(private afs: AngularFirestore) {}
+  constructor(private afs: AngularFirestore) { }
 
   getJobs(): Observable<Job[]> {
     return this.afs.collection<Job>("jobs").valueChanges({ idField: "id" });
@@ -39,19 +39,30 @@ export class JobsService {
     return from(result);
   }
 
-  search(title?: string) {
-    title = title?.toLocaleLowerCase();
+  filterJobs(filter: JobsFilter) {
+    const search = filter.search?.toLocaleLowerCase() ?? '';
     return this.getJobs().pipe(
       map((jobs) => {
         return jobs.filter((item) => {
-          let isMath = true;
-          if (title) {
-            isMath =
-              item.title?.toLocaleLowerCase().includes(title) ||
-              item.company?.toLocaleLowerCase().includes(title) ||
-              item.description?.toLocaleLowerCase().includes(title);
+          const isSearchMatched = search ? (
+            item.title?.toLocaleLowerCase().includes(search) ||
+            item.company?.toLocaleLowerCase().includes(search) ||
+            item.description?.toLocaleLowerCase().includes(search)
+          ) : true;
+
+          if (!isSearchMatched) {
+            return false;
           }
-          return isMath;
+
+          const isTitleMatched = filter.title
+            ? filter.title === item.title || filter.title === "All"
+            : true;
+          const isTypeMatched =
+            filter.jobType != '-1' ? filter.jobType == item.type : true;
+          const isCompanyMatched = filter.company
+            ? filter.company === item.company || filter.company === "All"
+            : true;
+          return isCompanyMatched && isTitleMatched && isTypeMatched;
         });
       })
     );

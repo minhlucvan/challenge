@@ -6,56 +6,49 @@
       New Job
     </button>
   </header>
-  <div [formGroup]="searchForm" class="job-search py-2 mt-2">
-    <input
-      type="text"
-      placeholder="Search jobs"
-      class="d-block my-2 p-2 w-100"
-      formControlName="title"
-    />
-  </div>
-  <div class="row" [formGroup]="filterForm">
-    <div class="col-4">
-      <label> Filter by type </label>
-      <select
-        class="form-control mt-2 pt-1 pb-1 form-select-sm"
-        formControlName="type"
-      >
-        <option *ngFor="let type of jobType" [value]="type.value">
-          {{ type.label }}
-        </option>
-      </select>
+  <form [formGroup]="filterForm">
+    <div class="job-search py-2 mt-2">
+      <input type="text" placeholder="Search jobs" class="d-block my-2 p-2 w-100" formControlName="search" />
     </div>
-    <ng-container *ngIf="filterCategory$ | async as filterCategory">
+    <div class="row">
       <div class="col-4">
-        <label> Filter by title </label>
-        <select
-          class="form-control mt-2 pt-1 pb-1 form-select-sm"
-          formControlName="title"
-        >
-          <option *ngFor="let title of filterCategory.title" [value]="title">
-            {{ title }}
+        <label> Filter by type </label>
+        <select class="form-control mt-2 pt-1 pb-1 form-select-sm" formControlName="jobType">
+          <option *ngFor="let type of jobType" [value]="type.value">
+            {{ type.label }}
           </option>
         </select>
       </div>
-      <div class="col-4">
-        <label> Filter by company </label>
-        <select
-          class="form-control mt-2 pt-1 pb-1 form-select-sm"
-          formControlName="company"
-        >
-          <option
-            *ngFor="let company of filterCategory.company"
-            [value]="company"
-          >
-            {{ company }}
-          </option>
-        </select>
-      </div>
-    </ng-container>
-  </div>
+      <ng-container *ngIf="filterCategory$ | async as filterCategory">
+        <div class="col-4">
+          <label> Filter by title </label>
+          <select class="form-control mt-2 pt-1 pb-1 form-select-sm" formControlName="title">
+            <option *ngFor="let title of filterCategory.title" [value]="title">
+              {{ title }}
+            </option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label> Filter by company </label>
+          <select class="form-control mt-2 pt-1 pb-1 form-select-sm" formControlName="company">
+            <option *ngFor="let company of filterCategory.company" [value]="company">
+              {{ company }}
+            </option>
+          </select>
+        </div>
+      </ng-container>
+    </div>
+  </form>
 
   <div class="job-listings my-2 mt-4">
+    <ng-container *ngIf="loading$ | async as loading">
+      <div *ngIf="loading">
+        Loading...
+      </div>
+    </ng-container>
+    <ng-container *ngIf="empty$ | async as empty">
+      <div>No result found!</div>
+    </ng-container>
     <ng-container *ngIf="jobs$ | async as jobs">
       <ng-container *ngFor="let job of jobs; let i = index">
         <app-job [job]="job"></app-job>

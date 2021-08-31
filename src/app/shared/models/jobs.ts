@@ -1,6 +1,6 @@
 export enum JobType {
-  PartTime,
-  FullTime,
+  PartTime = '0',
+  FullTime = '1',
 }
 
 export interface Job {
@@ -12,4 +12,12 @@ export interface Job {
   date: string;
   type: JobType;
   description: string;
+}
+
+
+export interface JobsFilter {
+  title?: string;
+  jobType?: '0'  | '1' | '-1';
+  company?: string;
+  search?: string;
 }

@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { of } from "rxjs";
 import { map, mergeMap, catchError, switchMap, tap } from "rxjs/operators";
 
-import { JobsService } from "../../jobs.service";
+import { JobsService } from "../../core/api/services/jobs.service";
 import * as fromJobs from "./jobs.actions";
 import { Router } from "@angular/router";
 
@@ -11,7 +11,7 @@ import { Router } from "@angular/router";
 export class JobsEffects {
   getJobs$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(fromJobs.getJobs),
+      ofType(fromJobs.getJobsMeta),
       mergeMap((action) =>
         this.jobsService.getJobs().pipe(
           map((jobs) => fromJobs.getJobsSuccess({ jobs })),
@@ -72,13 +72,13 @@ export class JobsEffects {
       )
     )
   );
-  searchJobs = createEffect(() =>
+  filterJobs$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(fromJobs.search),
+      ofType(fromJobs.filterJob),
       switchMap((action) => {
-        return this.jobsService.search(action.title).pipe(
+        return this.jobsService.filterJobs(action).pipe(
           map((jobs) => {
-            return fromJobs.searchSuccess({ jobs });
+            return fromJobs.filterSuccess({ jobs });
           })
         );
       })

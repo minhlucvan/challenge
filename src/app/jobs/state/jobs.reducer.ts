@@ -1,4 +1,4 @@
-import { Job } from "./../../shared/models/jobs";
+import { Job, JobsFilter } from "./../../shared/models/jobs";
 import {
   createReducer,
   on,
@@ -21,7 +21,7 @@ export interface State {
   error: string | null;
   selected?: Job | null;
   filterCategory: FilterCategory;
-  jobFilterResult: Job[];
+  filter: JobsFilter;
 }
 
 const initialState: State = {
@@ -30,13 +30,18 @@ const initialState: State = {
   error: null,
   selected: null,
   filterCategory: { title: ["All"], company: ["All"] },
-  jobFilterResult: [],
+  filter: {
+    title: "All",
+    company: "All",
+    jobType: "-1",
+    search: '',
+  },
 };
 
 // @ts-ignore
 const jobsReducer = createReducer<State>(
   initialState,
-  on(jobsActions.getJobs, (state) => ({
+  on(jobsActions.getJobsMeta, (state) => ({
     ...state,
     loading: true,
     selected: null,
@@ -46,8 +51,12 @@ const jobsReducer = createReducer<State>(
     let filterCategory: FilterCategory = { title: ["All"], company: ["All"] };
     jobs.forEach((item) => {
       if (item.title && item.company) {
-        filterCategory.title = [...filterCategory.title, item.title];
-        filterCategory.company = [...filterCategory.company, item.company];
+        if (filterCategory.title.indexOf(item.title) == -1) {
+          filterCategory.title.push(item.title);
+        }
+        if (filterCategory.company.indexOf(item.company) == -1) {
+          filterCategory.company.push(item.company);
+        }
       }
     });
     return {
@@ -55,8 +64,6 @@ const jobsReducer = createReducer<State>(
       filterCategory: filterCategory,
       loading: false,
       error: null,
-      jobs,
-      jobFilterResult: [],
     };
   }),
   on(jobsActions.getJobsError, (state, { error }) => ({
@@ -130,10 +137,19 @@ const jobsReducer = createReducer<State>(
       jobs,
     };
   }),
-  on(jobsActions.filterSuccess, (state, { job }) => {
+  on(jobsActions.filterJob, (state, filter) => {
     return {
       ...state,
-      jobFilterResult: job,
+      jobs: [],
+      loading: true,
+      filter
+    }
+  }),
+  on(jobsActions.filterSuccess, (state, { jobs }) => {
+    return {
+      ...state,
+      loading: false,
+      jobs,
     };
   })
 );
@@ -147,6 +163,10 @@ export const selectJobs = createSelector(
   selectJobsState,
   (state) => state.jobs
 );
+export const selectJobsFilter = createSelector(
+  selectJobsState,
+  (state) => state.filter
+);
 export const selectedJobSelector = createSelector(
   selectJobsState,
   (state) => state.selected
@@ -155,7 +175,11 @@ export const filterCategory = createSelector(
   selectJobsState,
   (state) => state.filterCategory
 );
-export const jobFilterResult = createSelector(
+export const selectLoading = createSelector(
   selectJobsState,
-  (state) => state.jobFilterResult
+  (state) => state.loading
+);
+export const selectEmpty = createSelector(
+  selectJobsState,
+  (state) => !state.loading && state.jobs.length == 0
 );

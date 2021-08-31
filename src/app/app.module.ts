@@ -20,6 +20,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { AngularFireModule } from "@angular/fire/compat";
 import { firebaseConfig } from "src/environments/environment";
 import { AngularFirestoreModule } from "@angular/fire/compat/firestore";
+import { LayoutModule } from "./shared/layout/layout.module";
 
 @NgModule({
   declarations: [AppComponent],
@@ -31,7 +32,7 @@ import { AngularFirestoreModule } from "@angular/fire/compat/firestore";
     StoreDevtoolsModule.instrument({
       maxAge: 25,
     }),
-    EffectsModule.forRoot([JobsEffects]),
+    EffectsModule.forRoot(),
     FontAwesomeModule,
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFirestoreModule,
@@ -39,6 +40,7 @@ import { AngularFirestoreModule } from "@angular/fire/compat/firestore";
     BrowserAnimationsModule,
     TuiDialogModule,
     TuiNotificationsModule,
+    LayoutModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -10,6 +10,5 @@ import { Store } from "@ngrx/store";
 export class AppComponent {
   title = "challenge";
   constructor(private store: Store) {
-    this.store.dispatch(jobsActions.getJobs());
   }
 }

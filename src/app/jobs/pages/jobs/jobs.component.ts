@@ -1,66 +1,64 @@
 import { FilterCategory } from "./../../state/jobs.reducer";
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { select, Store } from "@ngrx/store";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
-import { Job } from "../../../shared/models/jobs";
+import { Job, JobsFilter } from "../../../shared/models/jobs";
 import * as fromJobs from "../../state/jobs.reducer";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { debounceTime, map, switchMap } from "rxjs/operators";
-import { search } from "../../state/jobs.actions";
+import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from "rxjs/operators";
+import { filterJob, getJobsMeta, search } from "../../state/jobs.actions";
 
 @Component({
   selector: "app-jobs",
   templateUrl: "./jobs.component.html",
   styleUrls: ["./jobs.component.scss"],
 })
-export class JobsComponent implements OnInit {
-  jobs$!: Observable<Job[]>;
+export class JobsComponent implements OnInit, OnDestroy {
+  readonly jobs$: Observable<Job[]> = this.store.pipe(select(fromJobs.selectJobs)).pipe();
+  readonly jobsFilter$: Observable<JobsFilter> = this.store.pipe(select(fromJobs.selectJobsFilter)).pipe();
+  readonly loading$: Observable<boolean> = this.store.pipe(select(fromJobs.selectLoading)).pipe();
+  readonly empty$: Observable<boolean> =this.store.pipe(select(fromJobs.selectEmpty)).pipe();
+  readonly filterCategory$: Observable<FilterCategory> = this.store
+    .pipe(select(fromJobs.filterCategory))
+    .pipe();
   add = faPlus;
-  searchForm!: FormGroup;
   filterForm!: FormGroup;
-  filterCategory$!: Observable<FilterCategory>;
+  subscriptions: Subscription[] = [];
   constructor(private store: Store, private fb: FormBuilder) {
-    this.searchForm = fb.group({
-      title: [],
-    });
     this.filterForm = fb.group({
-      title: ["All"],
-      company: ["All"],
-      type: ["-1"],
+      title: [""],
+      company: [""],
+      jobType: ["-1"],
+      search: '',
     });
   }
 
   ngOnInit(): void {
-    this.jobs$ = this.store.pipe(select(fromJobs.selectJobs)).pipe();
-    this.filterCategory$ = this.store
-      .pipe(select(fromJobs.filterCategory))
-      .pipe();
-    this.searchForm.valueChanges.pipe(debounceTime(500)).subscribe((data) => {
-      this.store.dispatch(search(data));
-    });
-    this.filterForm.valueChanges.subscribe((filter) => {
-      this.jobs$ = this.store.pipe(select(fromJobs.selectJobs)).pipe(
-        map((data) => {
-          return data.filter((item) => {
-            const isMatchTitle = filter.title
-              ? filter.title === item.title || filter.title === "All"
-              : true;
-            const isMatchType =
-              filter.type >= 0 ? filter.type == item.type : true;
-            const isMatchCompany = filter.company
-              ? filter.company === item.company || filter.company === "All"
-              : true;
-            return isMatchCompany && isMatchTitle && isMatchType;
-          });
-        })
-      );
-    });
+    this.store.dispatch(getJobsMeta())
+    const filterSub = this.jobsFilter$.subscribe(filter => {
+      this.filterForm.patchValue(filter, { emitEvent: false, onlySelf: true });
+    })
+    this.subscriptions.push(filterSub);
+
+    const filterFormSub = this.filterForm.valueChanges.pipe(
+      startWith(this.filterForm.value),
+      distinctUntilChanged((prev, curr) => JSON.stringify(prev) == JSON.stringify(curr)),
+      debounceTime(400)
+    )
+      .subscribe((filter) => {
+        this.store.dispatch(filterJob(filter));
+      });
+    this.subscriptions.push(filterFormSub);
   }
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe())
+  }
+
   readonly jobType = [
-    { value: -1, label: "All" },
-    { value: 0, label: "Full time" },
-    { value: 1, label: "Part time" },
+    { value: '-1', label: "All" },
+    { value: '0', label: "Full time" },
+    { value: '1', label: "Part time" },
   ];
 }
