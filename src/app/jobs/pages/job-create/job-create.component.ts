@@ -49,8 +49,9 @@ export class JobCreateComponent implements OnInit {
           this.job = JSON.parse(JSON.stringify(data));
           if (data.date) {
             const dates = data.date.split("-").map((item) => Number(item));
+            this.tuiDate.toJSON();
             this.formData.patchValue({
-              date: new TuiDay(dates[0], dates[1], dates[2]),
+              date: new TuiDay(dates[0], dates[1] - 1, dates[2]),
             });
           }
 
@@ -98,6 +99,7 @@ export class JobCreateComponent implements OnInit {
   updateJob() {
     const job = this.formData.value;
     job.id = this.job.id;
+    debugger;
     if (job.date) {
       job.date = job.date.toJSON();
     } else {
